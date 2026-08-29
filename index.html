@@ -1260,14 +1260,14 @@
       });
     }
 
-    // FUNCIÓN: le pregunta a NUESTRA PROPIA función de Netlify
-    // (que vive en netlify/functions/puntos-limpios.js) qué puntos
-    // de reciclaje hay cerca. Nuestra función es la que habla con
-    // Overpass por detrás — nosotros ya no le hablamos directo,
-    // así que el candado de CORS nunca aparece en el camino.
+    // FUNCIÓN: le pregunta a NUESTRA PROPIA función (ahora en
+    // Vercel, en api/puntos-limpios.js) qué puntos de reciclaje
+    // hay cerca. Nuestra función es la que habla con Overpass por
+    // detrás — nosotros ya no le hablamos directo, así que el
+    // candado de CORS nunca aparece en el camino.
     async function buscarPuntosLimpiosCercanos(lat, lng, radioMetros) {
       const url =
-        "/.netlify/functions/puntos-limpios?lat=" + lat +
+        "/api/puntos-limpios?lat=" + lat +
         "&lng=" + lng +
         "&radio=" + radioMetros;
 

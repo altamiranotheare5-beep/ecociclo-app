@@ -1,19 +1,10 @@
 const https = require('https');
 
 exports.handler = async function(event, context) {
-    if (event.httpMethod !== 'POST' && event.httpMethod !== 'GET') {
-        return {
-            statusCode: 405,
-            body: JSON.stringify({ error: 'Method Not Allowed' })
-        };
-    }
-
-    // Leemos lat, lng y radio desde los parámetros de la URL (GET)
     let lat = event.queryStringParameters?.lat;
     let lng = event.queryStringParameters?.lng;
     let radio = event.queryStringParameters?.radio || 5000;
 
-    // Si también llegaran por POST, intentamos rescatarlos
     if ((!lat || !lng) && event.httpMethod === 'POST' && event.body) {
         try {
             const bodyData = JSON.parse(event.body);
@@ -23,14 +14,12 @@ exports.handler = async function(event, context) {
         } catch (e) {}
     }
 
-    if (!lat || !lng) {
-        return {
-            statusCode: 400,
-            body: JSON.stringify({ error: 'Faltan los parámetros lat y lng' })
-        };
+    // Si faltan las coordenadas, usamos Linares por defecto para evitar el error 400
+    if (!lat || !lng || lat === 'undefined' || lng === 'undefined') {
+        lat = -35.8456;
+        lng = -71.5975;
     }
 
-    // Construimos la consulta Overpass QL automáticamente usando la ubicación del usuario
     const query = `
         [out:json][timeout:25];
         (
@@ -56,7 +45,7 @@ exports.handler = async function(event, context) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': data.length,
+                'Content-Length': Buffer.byteLength(data),
                 'User-Agent': 'EcoCicloApp/1.0'
             }
         };

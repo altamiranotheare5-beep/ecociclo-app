@@ -35,7 +35,7 @@ export default async function handler(req, res) {
 
   try {
     // 1. Buscamos esa denuncia específica dentro del archivador
-    const urlLeer = URL_BASE_DATOS + "/hget/denuncias/" + id;
+    const urlLeer = URL_BASE_DATOS + "/hget/denuncias_v2/" + id;
     const respuestaLeer = await fetch(urlLeer, { headers: headers });
 
     if (!respuestaLeer.ok) {
@@ -56,7 +56,7 @@ export default async function handler(req, res) {
     // 3. Guardamos la denuncia actualizada, en el mismo lugar
     const urlEscribir =
       URL_BASE_DATOS +
-      "/hset/denuncias/" + id + "/" + encodeURIComponent(JSON.stringify(denuncia));
+      "/hset/denuncias_v2/" + id + "/" + encodeURIComponent(JSON.stringify(denuncia));
 
     const respuestaEscribir = await fetch(urlEscribir, { headers: headers });
 

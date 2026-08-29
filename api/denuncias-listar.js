@@ -25,7 +25,7 @@ export default async function handler(req, res) {
     // HGETALL trae TODAS las carpetitas del archivador de una vez.
     // La respuesta viene como una lista "aplanada": [id1, valor1,
     // id2, valor2, id3, valor3, ...] — hay que separarla de a pares
-    const url = URL_BASE_DATOS + "/hgetall/denuncias";
+    const url = URL_BASE_DATOS + "/hgetall/denuncias_v2";
 
     const respuesta = await fetch(url, {
       headers: { Authorization: "Bearer " + TOKEN_BASE_DATOS },

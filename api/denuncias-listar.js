@@ -3,8 +3,12 @@
 // (Hash de Redis).
 // ===========================================
 
-const URL_BASE_DATOS =
-  process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+// El ".replace(...)" le quita cualquier barra "/" que haya quedado
+// sobrando al final de la URL — una barra de más ahí puede hacer
+// que la dirección final quede mal formada (dos barras seguidas)
+const URL_BASE_DATOS = (
+  process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || ""
+).replace(/\/+$/, "");
 const TOKEN_BASE_DATOS =
   process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
 
@@ -28,7 +32,10 @@ export default async function handler(req, res) {
     });
 
     if (!respuesta.ok) {
-      throw new Error("La base de datos respondió con estado " + respuesta.status);
+      const textoError = await respuesta.text();
+      throw new Error(
+        "La base de datos respondió con estado " + respuesta.status + " → " + textoError
+      );
     }
 
     const datos = await respuesta.json();
@@ -55,3 +62,4 @@ export default async function handler(req, res) {
     });
   }
 }
+

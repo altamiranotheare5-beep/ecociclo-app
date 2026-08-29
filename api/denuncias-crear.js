@@ -54,7 +54,7 @@ export default async function handler(req, res) {
     // HSET nombreArchivador carpetaID contenido
     const url =
       URL_BASE_DATOS +
-      "/hset/denuncias/" + id + "/" + encodeURIComponent(JSON.stringify(denuncia));
+      "/hset/denuncias_v2/" + id + "/" + encodeURIComponent(JSON.stringify(denuncia));
 
     const respuesta = await fetch(url, {
       headers: { Authorization: "Bearer " + TOKEN_BASE_DATOS },
@@ -75,3 +75,4 @@ export default async function handler(req, res) {
     });
   }
 }
+

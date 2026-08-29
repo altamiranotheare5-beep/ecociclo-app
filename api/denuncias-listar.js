@@ -1,6 +1,6 @@
 // ===========================================
-// Esta función DEVUELVE todas las denuncias que se han
-// guardado hasta ahora, para mostrarlas en la lista de la app.
+// Devuelve todas las denuncias guardadas en el "archivador"
+// (Hash de Redis).
 // ===========================================
 
 const URL_BASE_DATOS =
@@ -18,9 +18,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    // LRANGE nombre 0 -1 significa "dame TODOS los elementos de
-    // esa lista, desde el primero (0) hasta el último (-1)"
-    const url = URL_BASE_DATOS + "/lrange/denuncias/0/-1";
+    // HGETALL trae TODAS las carpetitas del archivador de una vez.
+    // La respuesta viene como una lista "aplanada": [id1, valor1,
+    // id2, valor2, id3, valor3, ...] — hay que separarla de a pares
+    const url = URL_BASE_DATOS + "/hgetall/denuncias";
 
     const respuesta = await fetch(url, {
       headers: { Authorization: "Bearer " + TOKEN_BASE_DATOS },
@@ -31,15 +32,20 @@ export default async function handler(req, res) {
     }
 
     const datos = await respuesta.json();
+    const lista = datos.result || [];
 
-    // Cada elemento viene guardado como texto (JSON.stringify),
-    // así que lo "desempacamos" de vuelta a objetos normales
-    const denuncias = (datos.result || []).map(function (textoGuardado) {
-      return JSON.parse(textoGuardado);
-    });
+    const denuncias = [];
+    // Avanzamos de 2 en 2: la posición par es el ID, la impar
+    // (la siguiente) es el contenido guardado
+    for (let i = 0; i < lista.length; i += 2) {
+      const textoGuardado = lista[i + 1];
+      denuncias.push(JSON.parse(textoGuardado));
+    }
 
     // Mostramos las más nuevas primero
-    denuncias.reverse();
+    denuncias.sort(function (a, b) {
+      return new Date(b.fecha) - new Date(a.fecha);
+    });
 
     return res.status(200).json({ denuncias: denuncias });
   } catch (error) {

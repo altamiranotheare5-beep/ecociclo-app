@@ -29,7 +29,17 @@ export default async function handler(req, res) {
   try {
     // Igual que en Netlify: esto corre en el servidor, no en el
     // navegador, así que CORS no aplica aquí.
-    const respuesta = await fetch(url);
+    //
+    // Le agregamos un "User-Agent": es como un carnet de
+    // identificación que le mostramos a Overpass — muchos
+    // servicios gratuitos rechazan pedidos que no dicen quién
+    // los está haciendo, como medida contra el abuso.
+    const respuesta = await fetch(url, {
+      headers: {
+        "User-Agent": "EcoCicloApp/1.0 (proyecto educativo de reciclaje, Chile)",
+        "Accept": "application/json",
+      },
+    });
 
     if (!respuesta.ok) {
       throw new Error("Overpass respondió con estado " + respuesta.status);

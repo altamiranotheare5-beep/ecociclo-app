@@ -1265,19 +1265,36 @@
     // de reciclaje hay cerca. Nuestra función es la que habla con
     // Overpass por detrás — nosotros ya no le hablamos directo,
     // así que el candado de CORS nunca aparece en el camino.
-    async function buscarPuntosLimpiosCercanos(lat, lng, radioMetros) {
-      const url =
-        "/.netlify/functions/overpass?lat=" + lat +
-        "&lng=" + lng +
-        "&radio=" + radioMetros;
+  async function buscarPuntosLimpiosCercanos(lat, lng, radioMetros) {
+    const query = `
+        [out:json][timeout:25];
+        (
+          node(around:${radioMetros},${lat},${lng})[amenity=recycling];
+          way(around:${radioMetros},${lat},${lng})[amenity=recycling];
+          relation(around:${radioMetros},${lat},${lng})[amenity=recycling];
+          node(around:${radioRos || 5000},${lat},${lng})[recycling];
+          way(around:${radioMetros},${lat},${lng})[recycling];
+          relation(around:${radioMetros},${lat},${lng})[recycling];
+        );
+        out body;
+        >;
+        out skel qt;
+    `;
 
-      const respuesta = await fetch(url);
+    const respuesta = await fetch("https://overpass-api.de/api/interpreter", {
+        method: "POST",
+        body: "data=" + encodeURIComponent(query),
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        }
+    });
 
-      if (!respuesta.ok) {
-        throw new Error("Nuestro servidor respondió con estado " + respuesta.status);
-      }
+    if (!respuesta.ok) {
+        throw new Error("Overpass respondió con estado " + respuesta.status);
+    }
 
-      const datos = await respuesta.json();
+    const datos = await respuesta.json();
+    return datos.elements.map(function (elemento) {
 
       // Los datos vienen "crudos"; los transformamos a la forma
       // simple que ya usa el resto de nuestro código

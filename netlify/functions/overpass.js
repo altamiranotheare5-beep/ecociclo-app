@@ -1,7 +1,6 @@
 const https = require('https');
 
 exports.handler = async function(event, context) {
-    // Solo permitimos peticiones POST (o puedes cambiarlo si prefieres GET)
     if (event.httpMethod !== 'POST' && event.httpMethod !== 'GET') {
         return {
             statusCode: 405,
@@ -9,26 +8,43 @@ exports.handler = async function(event, context) {
         };
     }
 
-    // Obtenemos la consulta (query) de Overpass que manda tu app
-    // Si mandas la query por POST (en el body), la leemos de ahí; si no, usamos una por defecto o la leemos de los parámetros
-    let query = '';
-    if (event.httpMethod === 'POST' && event.body) {
+    // Leemos lat, lng y radio desde los parámetros de la URL (GET)
+    let lat = event.queryStringParameters?.lat;
+    let lng = event.queryStringParameters?.lng;
+    let radio = event.queryStringParameters?.radio || 5000;
+
+    // Si también llegaran por POST, intentamos rescatarlos
+    if ((!lat || !lng) && event.httpMethod === 'POST' && event.body) {
         try {
             const bodyData = JSON.parse(event.body);
-            query = bodyData.query;
-        } catch (e) {
-            query = event.body; // por si viene como texto plano
-        }
-    } else {
-        query = event.queryStringParameters?.query;
+            lat = bodyData.lat;
+            lng = bodyData.lng;
+            radio = bodyData.radio || radio;
+        } catch (e) {}
     }
 
-    if (!query) {
+    if (!lat || !lng) {
         return {
             statusCode: 400,
-            body: JSON.stringify({ error: 'Falta el parámetro query de Overpass' })
+            body: JSON.stringify({ error: 'Faltan los parámetros lat y lng' })
         };
     }
+
+    // Construimos la consulta Overpass QL automáticamente usando la ubicación del usuario
+    const query = `
+        [out:json][timeout:25];
+        (
+          node(around:${radio},${lat},${lng})[amenity=recycling];
+          way(around:${radio},${lat},${lng})[amenity=recycling];
+          relation(around:${radio},${lat},${lng})[amenity=recycling];
+          node(around:${radio},${lat},${lng})[recycling];
+          way(around:${radio},${lat},${lng})[recycling];
+          relation(around:${radio},${lat},${lng})[recycling];
+        );
+        out body;
+        >;
+        out skel qt;
+    `;
 
     return new Promise((resolve, reject) => {
         const data = 'data=' + encodeURIComponent(query);
@@ -56,7 +72,7 @@ exports.handler = async function(event, context) {
                 resolve({
                     statusCode: res.statusCode,
                     headers: {
-                        'Access-Control-Allow-Origin': '*', // Permite que tu app hable con la función
+                        'Access-Control-Allow-Origin': '*',
                         'Content-Type': 'application/json'
                     },
                     body: responseBody

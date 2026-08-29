@@ -1,14 +1,12 @@
 // ===========================================
-// Esta función RECIBE una denuncia nueva (categoría,
-// descripción, ubicación) y la GUARDA en la base de datos
-// (Upstash), para que quede ahí permanentemente, visible
-// para cualquier persona que después use la app.
+// Guarda una denuncia nueva. Ahora usamos un "Hash" de Redis
+// (piensa en él como un archivador con carpetas: cada denuncia
+// tiene su propia carpetita, identificada por un ID único) en
+// vez de solo una lista — así después SÍ podemos abrir una
+// denuncia específica y actualizarla (por ejemplo, sumarle un
+// voluntario), cosa que con una lista simple era muy difícil.
 // ===========================================
 
-// OJO: dependiendo de cómo se llame la integración que
-// conectaste en Vercel, las variables de entorno pueden
-// llamarse distinto. Probamos varios nombres posibles,
-// para no depender de adivinar el correcto.
 const URL_BASE_DATOS =
   process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
 const TOKEN_BASE_DATOS =
@@ -33,21 +31,26 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Faltan categoría o descripción" });
   }
 
-  // Armamos el "paquete" que vamos a guardar
+  // Creamos un ID único combinando la fecha exacta (en
+  // milisegundos) con un número al azar, para que nunca se
+  // repita entre dos denuncias
+  const id = Date.now() + "-" + Math.random().toString(36).slice(2, 8);
+
   const denuncia = {
+    id: id,
     categoria: categoria,
     descripcion: descripcion,
     lat: lat || null,
     lng: lng || null,
     fecha: new Date().toISOString(),
+    voluntarios: 0,
   };
 
   try {
-    // RPUSH agrega un elemento AL FINAL de una lista guardada
-    // bajo el nombre "denuncias" — si la lista no existe todavía,
-    // Upstash la crea sola la primera vez
+    // HSET nombreArchivador carpetaID contenido
     const url =
-      URL_BASE_DATOS + "/rpush/denuncias/" + encodeURIComponent(JSON.stringify(denuncia));
+      URL_BASE_DATOS +
+      "/hset/denuncias/" + id + "/" + encodeURIComponent(JSON.stringify(denuncia));
 
     const respuesta = await fetch(url, {
       headers: { Authorization: "Bearer " + TOKEN_BASE_DATOS },
@@ -65,3 +68,4 @@ export default async function handler(req, res) {
     });
   }
 }
+

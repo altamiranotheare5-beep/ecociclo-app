@@ -64,6 +64,11 @@ export default async function handler(req, res) {
 
   const id = Date.now() + "-" + Math.random().toString(36).slice(2, 8);
 
+  // Esta es la "llave secreta" que solo la persona que publica va
+  // a recibir de vuelta — la usamos después para comprobar que
+  // quien pide borrar la publicación es realmente quien la creó
+  const claveEdicion = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+
   const publicacion = {
     id: id,
     autor: autor && autor.trim() !== "" ? autor.trim() : "Ecoamig@ anónimo",
@@ -77,6 +82,7 @@ export default async function handler(req, res) {
     foto: foto || null,
     fecha: new Date().toISOString(),
     interesados: [],
+    claveEdicion: claveEdicion,
   };
 
   try {
@@ -92,6 +98,9 @@ export default async function handler(req, res) {
       throw new Error("La base de datos respondió con estado " + respuesta.status + " → " + textoError);
     }
 
+    // Le devolvemos la publicación COMPLETA (con la llave incluida)
+    // solo a quien la acaba de crear — es la única vez que esa
+    // llave viaja hacia el navegador de alguien
     return res.status(200).json({ ok: true, publicacion: publicacion });
   } catch (error) {
     return res.status(502).json({
@@ -100,3 +109,4 @@ export default async function handler(req, res) {
     });
   }
 }
+

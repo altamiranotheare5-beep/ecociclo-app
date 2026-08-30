@@ -1,25 +1,37 @@
 // ===========================================
-// Esta función es el equivalente en Vercel a la que ya
-// conocías de Netlify — mismo trabajo, "dialecto" distinto.
-// Vercel detecta automáticamente cualquier archivo dentro de
-// la carpeta /api y lo convierte en una dirección web propia:
-// este archivo va a vivir en /api/puntos-limpios
+// Esta función busca puntos de reciclaje reales usando Overpass
+// (la base de datos de OpenStreetMap).
+//
+// CAMBIO IMPORTANTE: antes probábamos cada "espejo" (copia) de
+// Overpass uno detrás del otro — si el primero fallaba, recién
+// ahí probábamos el segundo, y así. El problema es que sumando
+// la espera de cada intento, nos pasábamos del tiempo máximo que
+// Vercel le da a una función para responder, y la mataba a mitad
+// de camino.
+//
+// Ahora los probamos TODOS A LA VEZ (en paralelo) y nos quedamos
+// con el primero que responda bien — como llamar a 4 restaurantes
+// al mismo tiempo en vez de uno por uno, y quedarte con el primero
+// que te conteste.
 // ===========================================
 
-// Varios servidores que hablan el mismo idioma que Overpass. Si
-// el primero está lento o caído (les pasa, son gratuitos), probamos
-// el siguiente automáticamente — como llamar a otro restaurante si
-// el primero no contesta.
+// Le damos hasta 45 segundos a esta función completa (el máximo
+// que permite el plan gratuito de Vercel), para tener margen de
+// sobra aunque algún espejo esté lento.
+export const config = {
+  maxDuration: 45,
+};
+
 const ESPEJOS_OVERPASS = [
   "https://overpass-api.de/api/interpreter",
   "https://lz4.overpass-api.de/api/interpreter",
+  "https://z.overpass-api.de/api/interpreter",
   "https://overpass.kumi.systems/api/interpreter",
 ];
 
 // FUNCIÓN: hace un fetch, pero se rinde sola si demora más de
 // "milisegundos" — así ningún servidor lento nos deja esperando
-// para siempre (y nuestra función no se pasa del tiempo que Vercel
-// le permite correr)
+// para siempre
 async function fetchConTiempoLimite(url, opciones, milisegundos) {
   const controlador = new AbortController();
   const aviso = setTimeout(function () {
@@ -27,16 +39,17 @@ async function fetchConTiempoLimite(url, opciones, milisegundos) {
   }, milisegundos);
 
   try {
-    return await fetch(url, { ...opciones, signal: controlador.signal });
+    const respuesta = await fetch(url, { ...opciones, signal: controlador.signal });
+    if (!respuesta.ok) {
+      throw new Error("Respondió con estado " + respuesta.status);
+    }
+    return await respuesta.json();
   } finally {
     clearTimeout(aviso);
   }
 }
 
 export default async function handler(req, res) {
-  // En Vercel, los parámetros de la URL vienen en req.query
-  // (en Netlify venían en event.queryStringParameters — mismo
-  // concepto, nombre distinto)
   const { lat, lng, radio = "8000" } = req.query;
 
   if (!lat || !lng) {
@@ -47,7 +60,7 @@ export default async function handler(req, res) {
   }
 
   const consulta =
-    '[out:json][timeout:15];' +
+    '[out:json][timeout:25];' +
     'node["amenity"="recycling"](around:' + radio + ',' + lat + ',' + lng + ');' +
     'out body;';
 
@@ -58,41 +71,35 @@ export default async function handler(req, res) {
     },
   };
 
-  let ultimoError = null;
-
-  // Probamos cada espejo EN ORDEN. Como esto corre en el servidor
-  // (no en el navegador de la persona), no hay ningún candado de
-  // CORS que nos limite intentar varias veces.
-  for (let i = 0; i < ESPEJOS_OVERPASS.length; i++) {
-    const url = ESPEJOS_OVERPASS[i] + "?data=" + encodeURIComponent(consulta);
-
-    try {
-      console.log("Probando espejo " + (i + 1) + ": " + ESPEJOS_OVERPASS[i]);
-
-      // 8 segundos de paciencia por cada espejo — así, aunque los
-      // 3 estén lentos, no nos pasamos del tiempo máximo que Vercel
-      // le da a esta función para responder
-      const respuesta = await fetchConTiempoLimite(url, opcionesFetch, 8000);
-
-      if (!respuesta.ok) {
-        throw new Error("Respondió con estado " + respuesta.status);
-      }
-
-      const datos = await respuesta.json();
-
-      res.setHeader("Access-Control-Allow-Origin", "*");
-      return res.status(200).json(datos);
-    } catch (error) {
-      console.log("Falló " + ESPEJOS_OVERPASS[i] + ": " + error.message);
-      ultimoError = error;
-      // Seguimos con el próximo espejo del "for"
-    }
-  }
-
-  // Si llegamos aquí, ningún espejo respondió a tiempo
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  return res.status(502).json({
-    error: "Ningún servidor de Overpass respondió a tiempo",
-    detalle: ultimoError ? ultimoError.message : "Error desconocido",
+  // Armamos UNA promesa por cada espejo (todas empiezan a correr
+  // AL MISMO TIEMPO apenas se crean, no esperan su turno)
+  const intentos = ESPEJOS_OVERPASS.map(function (espejo) {
+    const url = espejo + "?data=" + encodeURIComponent(consulta);
+    return fetchConTiempoLimite(url, opcionesFetch, 20000);
   });
+
+  try {
+    // Promise.any espera a que UNA CUALQUIERA de las promesas
+    // funcione, y usa esa — ignora las que van fallando, y solo
+    // se rinde si TODAS fallan
+    const datos = await Promise.any(intentos);
+
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    return res.status(200).json(datos);
+  } catch (error) {
+    // Cuando TODAS las promesas fallan, Promise.any junta todos
+    // los errores dentro de error.errors — los resumimos para
+    // poder diagnosticar sin adivinar
+    const detalleErrores = (error.errors || [error])
+      .map(function (e) {
+        return e.message;
+      })
+      .join(" | ");
+
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    return res.status(502).json({
+      error: "Ningún servidor de Overpass respondió a tiempo",
+      detalle: detalleErrores,
+    });
+  }
 }

@@ -1,8 +1,13 @@
 // ===========================================
 // Guarda una publicación nueva del Mercado / Intercambio
-// (vender, intercambiar o regalar), en el mismo tipo de
-// "archivador" (Hash de Redis) que ya usamos para denuncias y
-// comunidad.
+// (vender, intercambiar o regalar), ahora con foto opcional.
+//
+// OJO — cambio importante respecto a las otras funciones: como
+// una foto pesa mucho más que un simple texto, ya no la mandamos
+// "pegada en la dirección web" (como hacíamos con /hset/.../valor).
+// Una dirección web tiene un largo máximo, y una foto lo rompería.
+// En vez de eso, mandamos el comando completo DENTRO del cuerpo
+// del mensaje (el "body"), que no tiene ese límite tan estrecho.
 // ===========================================
 
 const URL_BASE_DATOS = (
@@ -10,6 +15,31 @@ const URL_BASE_DATOS = (
 ).replace(/\/+$/, "");
 const TOKEN_BASE_DATOS =
   process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+
+// Netlify/Vercel a veces limitan el tamaño del "body" que reciben
+// las funciones — le avisamos a Vercel que necesitamos un poco más
+// de espacio del que viene por defecto, para que quepan fotos.
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: "4mb",
+    },
+  },
+};
+
+// FUNCIÓN: le manda un comando a Upstash METIÉNDOLO EN EL BODY,
+// en vez de pegado en la URL — así no importa si el valor es
+// grande (como una foto en base64)
+async function comandoUpstash(comando) {
+  return fetch(URL_BASE_DATOS, {
+    method: "POST",
+    headers: {
+      Authorization: "Bearer " + TOKEN_BASE_DATOS,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(comando),
+  });
+}
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -24,7 +54,7 @@ export default async function handler(req, res) {
     });
   }
 
-  const { autor, categoria, titulo, descripcion, precio, buscaACambio } = req.body || {};
+  const { autor, categoria, titulo, descripcion, precio, buscaACambio, foto } = req.body || {};
 
   const categoriasValidas = ["Vender", "Intercambiar", "Regalar"];
 
@@ -42,18 +72,20 @@ export default async function handler(req, res) {
     descripcion: descripcion,
     precio: categoria === "Vender" ? (precio || null) : null,
     buscaACambio: categoria === "Intercambiar" ? (buscaACambio || null) : null,
+    // Guardamos la foto ya "aplastada" en texto (base64) que nos
+    // manda el navegador — o null si no pusieron ninguna
+    foto: foto || null,
     fecha: new Date().toISOString(),
     interesados: [],
   };
 
   try {
-    const url =
-      URL_BASE_DATOS +
-      "/hset/publicaciones_mercado/" + id + "/" + encodeURIComponent(JSON.stringify(publicacion));
-
-    const respuesta = await fetch(url, {
-      headers: { Authorization: "Bearer " + TOKEN_BASE_DATOS },
-    });
+    const respuesta = await comandoUpstash([
+      "HSET",
+      "publicaciones_mercado",
+      id,
+      JSON.stringify(publicacion),
+    ]);
 
     if (!respuesta.ok) {
       const textoError = await respuesta.text();

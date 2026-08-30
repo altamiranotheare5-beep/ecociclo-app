@@ -1,7 +1,8 @@
 // ===========================================
 // Agrega un mensaje de interés (público) a UNA publicación del
-// mercado — así la gente negocia a la vista de todos, sin
-// mensajes privados ocultos.
+// mercado. Como la publicación puede traer una foto pesada,
+// usamos el mismo truco de mandar los comandos por el "body" en
+// vez de pegados en la dirección web.
 // ===========================================
 
 const URL_BASE_DATOS = (
@@ -9,6 +10,25 @@ const URL_BASE_DATOS = (
 ).replace(/\/+$/, "");
 const TOKEN_BASE_DATOS =
   process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: "4mb",
+    },
+  },
+};
+
+async function comandoUpstash(comando) {
+  return fetch(URL_BASE_DATOS, {
+    method: "POST",
+    headers: {
+      Authorization: "Bearer " + TOKEN_BASE_DATOS,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(comando),
+  });
+}
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -29,11 +49,9 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Falta el id de la publicación o el mensaje" });
   }
 
-  const headers = { Authorization: "Bearer " + TOKEN_BASE_DATOS };
-
   try {
-    const urlLeer = URL_BASE_DATOS + "/hget/publicaciones_mercado/" + idPublicacion;
-    const respuestaLeer = await fetch(urlLeer, { headers: headers });
+    // 1. Leemos la publicación completa (incluida su foto, si tiene)
+    const respuestaLeer = await comandoUpstash(["HGET", "publicaciones_mercado", idPublicacion]);
 
     if (!respuestaLeer.ok) {
       throw new Error("No se pudo leer la publicación");
@@ -56,11 +74,14 @@ export default async function handler(req, res) {
       fecha: new Date().toISOString(),
     });
 
-    const urlEscribir =
-      URL_BASE_DATOS +
-      "/hset/publicaciones_mercado/" + idPublicacion + "/" + encodeURIComponent(JSON.stringify(publicacion));
-
-    const respuestaEscribir = await fetch(urlEscribir, { headers: headers });
+    // 2. Guardamos la publicación entera de nuevo (con su foto
+    // intacta) — por eso este paso SÍ necesita ir por el "body"
+    const respuestaEscribir = await comandoUpstash([
+      "HSET",
+      "publicaciones_mercado",
+      idPublicacion,
+      JSON.stringify(publicacion),
+    ]);
 
     if (!respuestaEscribir.ok) {
       throw new Error("No se pudo guardar el mensaje");

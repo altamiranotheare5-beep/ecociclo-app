@@ -34,7 +34,15 @@ export default async function handler(req, res) {
 
     const publicaciones = [];
     for (let i = 0; i < lista.length; i += 2) {
-      publicaciones.push(JSON.parse(lista[i + 1]));
+      const publicacion = JSON.parse(lista[i + 1]);
+
+      // MUY IMPORTANTE: le quitamos la "llave secreta" antes de
+      // devolver la publicación — esto es lo que la mantiene
+      // secreta de verdad. Si la dejáramos, cualquier persona
+      // podría copiarla desde la app y borrar publicaciones ajenas.
+      delete publicacion.claveEdicion;
+
+      publicaciones.push(publicacion);
     }
 
     publicaciones.sort(function (a, b) {

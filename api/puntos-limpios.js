@@ -67,15 +67,15 @@ export default async function handler(req, res) {
     },
   };
 
-  // Le pedimos a los 4 espejos a la vez, con un límite de tiempo
-  // más corto que antes (8 segundos, no 20) — el plan gratis de
-  // Vercel puede cortar la función a la fuerza cerca de los 10
-  // segundos sin importar lo que le pidamos en el código, así que
-  // preferimos rendirnos nosotros mismos ANTES de esa pared, en
-  // vez de que Vercel nos corte a mitad de camino de mala manera
+  // Le pedimos a los 4 espejos a la vez, con 15 segundos de
+  // paciencia cada uno. (Antes probamos con 8 segundos, pero
+  // Overpass a veces está más lento de lo normal — probablemente
+  // porque lo hemos probado muchísimo hoy, y es un servicio
+  // público gratuito con límites de uso — así que le damos un
+  // poco más de margen antes de rendirnos)
   const intentos = ESPEJOS_OVERPASS.map(function (espejo) {
     const url = espejo + "?data=" + encodeURIComponent(consulta);
-    return fetchConTiempoLimite(url, opcionesFetch, 8000);
+    return fetchConTiempoLimite(url, opcionesFetch, 15000);
   });
 
   const resultados = await Promise.allSettled(intentos);

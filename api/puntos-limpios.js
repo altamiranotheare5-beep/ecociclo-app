@@ -67,13 +67,15 @@ export default async function handler(req, res) {
     },
   };
 
-  // Le pedimos a los 4 espejos a la vez. "allSettled" (a
-  // diferencia de "any") espera a que TODOS terminen, sea que
-  // hayan funcionado o fallado — no se apura a devolver apenas el
-  // primero contesta
+  // Le pedimos a los 4 espejos a la vez, con un límite de tiempo
+  // más corto que antes (8 segundos, no 20) — el plan gratis de
+  // Vercel puede cortar la función a la fuerza cerca de los 10
+  // segundos sin importar lo que le pidamos en el código, así que
+  // preferimos rendirnos nosotros mismos ANTES de esa pared, en
+  // vez de que Vercel nos corte a mitad de camino de mala manera
   const intentos = ESPEJOS_OVERPASS.map(function (espejo) {
     const url = espejo + "?data=" + encodeURIComponent(consulta);
-    return fetchConTiempoLimite(url, opcionesFetch, 20000);
+    return fetchConTiempoLimite(url, opcionesFetch, 8000);
   });
 
   const resultados = await Promise.allSettled(intentos);

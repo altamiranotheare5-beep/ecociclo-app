@@ -32,8 +32,32 @@ export default async function handler(req, res) {
   if (accion === "comentar") {
     return manejarComentar(req, res);
   }
+  if (accion === "borrarTodo") {
+    return manejarBorrarTodo(req, res);
+  }
 
-  return res.status(400).json({ error: "Falta indicar ?accion=crear, listar o comentar" });
+  return res.status(400).json({ error: "Falta indicar ?accion=crear, listar, comentar o borrarTodo" });
+}
+
+async function manejarBorrarTodo(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Esta acción solo acepta POST" });
+  }
+
+  try {
+    const url = URL_BASE_DATOS + "/del/publicaciones";
+    const respuesta = await fetch(url, {
+      headers: { Authorization: "Bearer " + TOKEN_BASE_DATOS },
+    });
+
+    if (!respuesta.ok) {
+      throw new Error("No se pudo borrar");
+    }
+
+    return res.status(200).json({ ok: true });
+  } catch (error) {
+    return res.status(502).json({ error: "No se pudo borrar todo", detalle: error.message });
+  }
 }
 
 async function manejarCrear(req, res) {

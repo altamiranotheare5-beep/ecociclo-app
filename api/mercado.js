@@ -86,8 +86,29 @@ export default async function handler(req, res) {
   if (accion === "eliminar") {
     return manejarEliminar(req, res);
   }
+  if (accion === "borrarTodo") {
+    return manejarBorrarTodo(req, res);
+  }
 
-  return res.status(400).json({ error: "Falta indicar ?accion=crear, listar, interes o eliminar" });
+  return res.status(400).json({ error: "Falta indicar ?accion=crear, listar, interes, eliminar o borrarTodo" });
+}
+
+async function manejarBorrarTodo(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Esta acción solo acepta POST" });
+  }
+
+  try {
+    const respuesta = await comandoUpstash(["DEL", "publicaciones_mercado"]);
+
+    if (!respuesta.ok) {
+      throw new Error("No se pudo borrar");
+    }
+
+    return res.status(200).json({ ok: true });
+  } catch (error) {
+    return res.status(502).json({ error: "No se pudo borrar todo", detalle: error.message });
+  }
 }
 
 async function manejarCrear(req, res) {

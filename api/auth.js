@@ -14,7 +14,7 @@ const TOKEN_BASE_DATOS =
 // Este es el mismo "Client ID" que pegamos en el HTML — lo
 // repetimos acá para comprobar que el token que llegó fue
 // generado específicamente para NUESTRA app, y no para otra.
-const CLIENT_ID_GOOGLE = "PEGA_AQUI_TU_CLIENT_ID.apps.googleusercontent.com";
+const CLIENT_ID_GOOGLE = "112955477674-d5v511m3bs54j6pn7fa3foal0195sqru.apps.googleusercontent.com";
 
 async function comandoUpstash(comando) {
   return fetch(URL_BASE_DATOS, {

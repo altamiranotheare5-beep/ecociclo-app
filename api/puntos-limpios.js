@@ -2,22 +2,21 @@
 // Esta función busca puntos de reciclaje reales usando Overpass
 // (la base de datos de OpenStreetMap).
 //
-// CAMBIO IMPORTANTE: antes probábamos cada "espejo" (copia) de
-// Overpass uno detrás del otro — si el primero fallaba, recién
-// ahí probábamos el segundo, y así. El problema es que sumando
-// la espera de cada intento, nos pasábamos del tiempo máximo que
-// Vercel le da a una función para responder, y la mataba a mitad
-// de camino.
-//
-// Ahora los probamos TODOS A LA VEZ (en paralelo) y nos quedamos
-// con el primero que responda bien — como llamar a 4 restaurantes
-// al mismo tiempo en vez de uno por uno, y quedarte con el primero
-// que te conteste.
+// HISTORIAL DE CAMBIOS:
+// 1° versión: probaba los espejos uno por uno — muy lento.
+// 2° versión: probaba los 4 a la vez y usaba el PRIMERO que
+//    respondiera — rápido, pero con un bug: si el más rápido
+//    resultaba tener 0 resultados, nos quedábamos con esa
+//    respuesta vacía sin revisar si los otros 3 sí tenían datos.
+// 3° versión (esta): sigue preguntando a los 4 a la vez, pero
+//    ahora ESPERA a que todos terminen (o se rindan) y JUNTA los
+//    resultados de todos los que sí respondieron bien — como
+//    preguntarle a 4 vecinos dónde queda el punto limpio más
+//    cercano, y armar una sola lista completa con lo que cada uno
+//    supo, en vez de quedarte solo con la respuesta del primero
+//    que te contestó el teléfono.
 // ===========================================
 
-// Le damos hasta 45 segundos a esta función completa (el máximo
-// que permite el plan gratuito de Vercel), para tener margen de
-// sobra aunque algún espejo esté lento.
 export const config = {
   maxDuration: 45,
 };
@@ -29,9 +28,6 @@ const ESPEJOS_OVERPASS = [
   "https://overpass.kumi.systems/api/interpreter",
 ];
 
-// FUNCIÓN: hace un fetch, pero se rinde sola si demora más de
-// "milisegundos" — así ningún servidor lento nos deja esperando
-// para siempre
 async function fetchConTiempoLimite(url, opciones, milisegundos) {
   const controlador = new AbortController();
   const aviso = setTimeout(function () {
@@ -71,28 +67,31 @@ export default async function handler(req, res) {
     },
   };
 
-  // Armamos UNA promesa por cada espejo (todas empiezan a correr
-  // AL MISMO TIEMPO apenas se crean, no esperan su turno)
+  // Le pedimos a los 4 espejos a la vez. "allSettled" (a
+  // diferencia de "any") espera a que TODOS terminen, sea que
+  // hayan funcionado o fallado — no se apura a devolver apenas el
+  // primero contesta
   const intentos = ESPEJOS_OVERPASS.map(function (espejo) {
     const url = espejo + "?data=" + encodeURIComponent(consulta);
     return fetchConTiempoLimite(url, opcionesFetch, 20000);
   });
 
-  try {
-    // Promise.any espera a que UNA CUALQUIERA de las promesas
-    // funcione, y usa esa — ignora las que van fallando, y solo
-    // se rinde si TODAS fallan
-    const datos = await Promise.any(intentos);
+  const resultados = await Promise.allSettled(intentos);
 
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    return res.status(200).json(datos);
-  } catch (error) {
-    // Cuando TODAS las promesas fallan, Promise.any junta todos
-    // los errores dentro de error.errors — los resumimos para
-    // poder diagnosticar sin adivinar
-    const detalleErrores = (error.errors || [error])
-      .map(function (e) {
-        return e.message;
+  const respuestasExitosas = resultados
+    .filter(function (r) {
+      return r.status === "fulfilled";
+    })
+    .map(function (r) {
+      return r.value;
+    });
+
+  if (respuestasExitosas.length === 0) {
+    // Ninguno de los 4 espejos contestó bien — ahí sí es un
+    // problema real de conexión, no falta de datos
+    const detalleErrores = resultados
+      .map(function (r) {
+        return r.reason ? r.reason.message : "desconocido";
       })
       .join(" | ");
 
@@ -102,4 +101,21 @@ export default async function handler(req, res) {
       detalle: detalleErrores,
     });
   }
+
+  // Juntamos los "elements" (los puntos encontrados) de TODAS las
+  // respuestas exitosas en una sola lista, sin repetir el mismo
+  // punto 2 veces (cada punto de OpenStreetMap tiene un "id" único,
+  // así que usamos eso para detectar y descartar duplicados)
+  const puntosVistos = new Map();
+
+  respuestasExitosas.forEach(function (datos) {
+    (datos.elements || []).forEach(function (punto) {
+      puntosVistos.set(punto.id, punto);
+    });
+  });
+
+  const elementosJuntados = Array.from(puntosVistos.values());
+
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  return res.status(200).json({ elements: elementosJuntados });
 }

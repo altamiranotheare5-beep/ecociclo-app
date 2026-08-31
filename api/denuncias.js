@@ -39,8 +39,38 @@ export default async function handler(req, res) {
   if (accion === "voluntario") {
     return manejarVoluntario(req, res);
   }
+  if (accion === "borrarTodo") {
+    return manejarBorrarTodo(req, res);
+  }
 
-  return res.status(400).json({ error: "Falta indicar ?accion=crear, listar o voluntario" });
+  return res.status(400).json({ error: "Falta indicar ?accion=crear, listar, voluntario o borrarTodo" });
+}
+
+// ===========================================
+// BORRAR TODO — pensada para limpiar publicaciones de PRUEBA
+// antes de entregar el proyecto. Borra TODAS las denuncias de
+// una sola vez, sin excepción — por eso pide confirmación por
+// partida doble en el frontend antes de llegar hasta acá.
+// ===========================================
+async function manejarBorrarTodo(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Esta acción solo acepta POST" });
+  }
+
+  try {
+    const url = URL_BASE_DATOS + "/del/denuncias_v2";
+    const respuesta = await fetch(url, {
+      headers: { Authorization: "Bearer " + TOKEN_BASE_DATOS },
+    });
+
+    if (!respuesta.ok) {
+      throw new Error("No se pudo borrar");
+    }
+
+    return res.status(200).json({ ok: true });
+  } catch (error) {
+    return res.status(502).json({ error: "No se pudo borrar todo", detalle: error.message });
+  }
 }
 
 // ===========================================

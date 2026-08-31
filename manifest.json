@@ -1,0 +1,32 @@
+{
+  "name": "EcoCiclo App",
+  "short_name": "EcoCiclo",
+  "description": "Recicla más fácil con la ayuda de EcoBot: puntos limpios reales, escáner con IA, denuncias, comunidad y más.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#eef8ee",
+  "theme_color": "#2E7D32",
+  "lang": "es-CL",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

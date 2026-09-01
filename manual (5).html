@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EcoCiclo App — Cómo instalar y usar</title>
+  <meta name="description" content="Guía oficial de instalación y uso de EcoCiclo App: reciclaje inteligente para tu comunidad">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --verde-oscuro: #1B5E20;
+      --verde: #2E7D32;
+      --verde-medio: #43A047;
+      --verde-claro: #66BB6A;
+      --verde-pastel: #E8F5E9;
+      --azul: #1565C0;
+      --azul-pastel: #DCEEFB;
+      --naranja: #E65100;
+      --naranja-pastel: #FBEBDD;
+      --morado: #6A1B9A;
+      --morado-pastel: #EFE3FB;
+      --rosado: #AD1457;
+      --rosado-pastel: #FCE4EC;
+      --amarillo: #F9A825;
+      --amarillo-pastel: #FFF8E1;
+      --texto: #1B3A2E;
+      --texto-suave: #5B7D5C;
+      --borde: #DCEEDC;
+    }
+
+    body {
+      font-family: -apple-system, "Segoe UI", Verdana, sans-serif;
+      color: var(--texto);
+      background: #FFFFFF;
+      line-height: 1.5;
+    }
+
+    a { color: inherit; }
+
+    .contenedor {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ===========================================
+       ENCABEZADO
+    =========================================== */
+    header {
+      position: sticky;
+      top: 0;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--borde);
+      z-index: 100;
+    }
+
+    .barra-superior {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .marca {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 17px;
+      color: var(--verde-oscuro);
+      text-decoration: none;
+    }
+
+    .marca span.hoja { font-size: 20px; }
+
+    nav {
+      display: flex;
+      gap: 22px;
+    }
+
+    nav a {
+      font-size: 14px;
+      color: var(--texto-suave);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    nav a:hover { color: var(--verde); }
+
+    .boton-nav-abrir {
+      background: var(--verde-medio);
+      color: white;
+      padding: 9px 18px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 640px) {
+      nav { display: none; }
+    }
+
+    /* --- Barra de accesibilidad --- */
+    .barra-accesibilidad {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 0 24px 10px 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .etiqueta-accesibilidad {
+      font-size: 11px;
+      color: var(--texto-suave);
+      margin-right: 4px;
+    }
+
+    .barra-accesibilidad button {
+      background: var(--verde-pastel);
+      border: 1.5px solid transparent;
+      border-radius: 10px;
+      padding: 5px 9px;
+      font-size: 13px;
+      cursor: pointer;
+      color: var(--verde-oscuro);
+    }
+
+    .barra-accesibilidad button.activo {
+      border-color: var(--verde-medio);
+      background: white;
+    }
+
+    /* Mismo truco que en la app: invertir todo, y des-invertir
+       las imágenes para que no se vean con colores raros */
+    body.modo-oscuro {
+      filter: invert(1) hue-rotate(180deg);
+      background: #0a0a0a;
+    }
+    body.modo-oscuro img {
+      filter: invert(1) hue-rotate(180deg);
+    }
+
+    body.modo-daltonico {
+      filter: contrast(1.12) saturate(1.15);
+    }
+
+    /* ===========================================
+       HERO
+    =========================================== */
+    .hero {
+      background: radial-gradient(circle at 50% 0%, #d9f2da 0%, #f3faf3 55%, #ffffff 100%);
+      padding: 56px 24px 48px 24px;
+      text-align: center;
+    }
+
+    .hero img {
+      width: 150px;
+      filter: drop-shadow(0 10px 16px rgba(76, 175, 80, 0.3));
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      font-size: 32px;
+      color: var(--verde-oscuro);
+      margin-bottom: 14px;
+      max-width: 560px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .hero p.subtitulo {
+      font-size: 16px;
+      color: var(--texto-suave);
+      max-width: 480px;
+      margin: 0 auto 28px auto;
+    }
+
+    .fila-botones-hero {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .boton-primario {
+      background: var(--verde-medio);
+      color: white;
+      padding: 14px 28px;
+      border-radius: 24px;
+      font-size: 15px;
+      font-weight: 700;
+      text-decoration: none;
+      box-shadow: 0 6px 16px rgba(67, 160, 71, 0.35);
+    }
+
+    .boton-secundario {
+      background: white;
+      color: var(--verde-oscuro);
+      border: 1.5px solid var(--borde);
+      padding: 14px 28px;
+      border-radius: 24px;
+      font-size: 15px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .requisitos-hero {
+      margin-top: 22px;
+      font-size: 12.5px;
+      color: var(--texto-suave);
+    }
+
+    /* ===========================================
+       SECCIONES GENERALES
+    =========================================== */
+    section {
+      padding: 56px 24px;
+    }
+
+    section.fondo-suave {
+      background: #FAFDFA;
+    }
+
+    .titulo-seccion {
+      font-size: 26px;
+      color: var(--verde-oscuro);
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .bajada-seccion {
+      text-align: center;
+      color: var(--texto-suave);
+      font-size: 15px;
+      max-width: 520px;
+      margin: 0 auto 36px auto;
+    }
+
+    /* ===========================================
+       QUÉ ES ECOCICLO — grilla de funciones
+    =========================================== */
+    .grilla-funciones {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .grilla-funciones { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .tarjeta-funcion {
+      background: white;
+      border: 1px solid var(--borde);
+      border-radius: 18px;
+      padding: 20px 14px;
+      text-align: center;
+    }
+
+    .tarjeta-funcion .circulo-icono {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin: 0 auto 12px auto;
+    }
+
+    .tarjeta-funcion h3 {
+      font-size: 13.5px;
+      color: var(--verde-oscuro);
+      margin-bottom: 6px;
+    }
+
+    .tarjeta-funcion p {
+      font-size: 12px;
+      color: var(--texto-suave);
+      line-height: 1.4;
+    }
+
+    /* ===========================================
+       PASOS DE INSTALACIÓN
+    =========================================== */
+    .lista-pasos {
+      counter-reset: paso;
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    .paso {
+      display: flex;
+      gap: 18px;
+      padding: 22px 0;
+      border-bottom: 1px solid var(--borde);
+    }
+
+    .paso:last-child { border-bottom: none; }
+
+    .numero-paso {
+      counter-increment: paso;
+      flex-shrink: 0;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--verde-pastel);
+      color: var(--verde-oscuro);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .numero-paso::before { content: counter(paso); }
+
+    .cuerpo-paso h3 {
+      font-size: 15px;
+      color: var(--verde-oscuro);
+      margin-bottom: 6px;
+    }
+
+    .cuerpo-paso p {
+      font-size: 13.5px;
+      color: var(--texto-suave);
+      line-height: 1.55;
+    }
+
+    /* ===========================================
+       CÓMO USAR — tarjetas alternadas
+    =========================================== */
+    .bloque-uso {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      max-width: 700px;
+      margin: 0 auto 40px auto;
+    }
+
+    .bloque-uso:nth-child(even) { flex-direction: row-reverse; }
+
+    .icono-uso-grande {
+      flex-shrink: 0;
+      width: 84px;
+      height: 84px;
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 38px;
+    }
+
+    .bloque-uso h3 {
+      font-size: 17px;
+      color: var(--verde-oscuro);
+      margin-bottom: 6px;
+    }
+
+    .bloque-uso p {
+      font-size: 13.5px;
+      color: var(--texto-suave);
+      line-height: 1.6;
+    }
+
+    @media (max-width: 640px) {
+      .bloque-uso, .bloque-uso:nth-child(even) {
+        flex-direction: column;
+        text-align: center;
+        gap: 14px;
+      }
+    }
+
+    /* ===========================================
+       PREGUNTAS FRECUENTES / ERRORES
+    =========================================== */
+    .lista-faq {
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    details.item-faq {
+      background: white;
+      border: 1px solid var(--borde);
+      border-radius: 14px;
+      padding: 4px 20px;
+      margin-bottom: 10px;
+    }
+
+    details.item-faq summary {
+      padding: 16px 0;
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--verde-oscuro);
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    details.item-faq summary::-webkit-details-marker { display: none; }
+
+    details.item-faq summary::after {
+      content: "+";
+      font-size: 20px;
+      color: var(--verde-medio);
+      flex-shrink: 0;
+      margin-left: 12px;
+    }
+
+    details.item-faq[open] summary::after { content: "–"; }
+
+    details.item-faq p {
+      font-size: 13.5px;
+      color: var(--texto-suave);
+      line-height: 1.6;
+      padding-bottom: 18px;
+    }
+
+    /* ===========================================
+       SECCIÓN ENCARGADOS DE PUNTOS LIMPIOS
+    =========================================== */
+    .caja-encargados {
+      max-width: 640px;
+      margin: 0 auto;
+      background: var(--azul-pastel);
+      border-radius: 20px;
+      padding: 32px;
+    }
+
+    .caja-encargados h2 {
+      font-size: 20px;
+      color: #0D47A1;
+      margin-bottom: 12px;
+    }
+
+    .caja-encargados p {
+      font-size: 14px;
+      color: #1B3A2E;
+      line-height: 1.65;
+      margin-bottom: 12px;
+    }
+
+    .caja-encargados a {
+      color: #0D47A1;
+      font-weight: 700;
+      text-decoration: underline;
+    }
+
+    /* ===========================================
+       CTA FINAL
+    =========================================== */
+    .cta-final {
+      text-align: center;
+      background: linear-gradient(160deg, #1B5E20, #2E7D32);
+      color: white;
+      padding: 64px 24px;
+    }
+
+    .cta-final h2 {
+      font-size: 26px;
+      margin-bottom: 12px;
+    }
+
+    .cta-final p {
+      font-size: 14.5px;
+      color: #C8E6C9;
+      max-width: 440px;
+      margin: 0 auto 28px auto;
+    }
+
+    .cta-final .boton-primario {
+      background: white;
+      color: var(--verde-oscuro);
+      box-shadow: none;
+    }
+
+    /* ===========================================
+       FOOTER
+    =========================================== */
+    footer {
+      text-align: center;
+      padding: 28px 24px;
+      font-size: 12px;
+      color: var(--texto-suave);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="barra-superior">
+      <a href="#" class="marca"><span class="hoja">🌱</span> EcoCiclo</a>
+      <nav>
+        <a href="#instalar">Instalar</a>
+        <a href="#usar">Cómo usar</a>
+        <a href="#preguntas">Preguntas frecuentes</a>
+        <a href="#encargados">Puntos limpios</a>
+      </nav>
+      <a href="https://ecociclo-app.vercel.app" class="boton-nav-abrir" target="_blank" rel="noopener">Abrir la app</a>
+    </div>
+    <div class="barra-accesibilidad">
+      <span class="etiqueta-accesibilidad">Accesibilidad:</span>
+      <button id="acc-letra-menos" title="Letra normal">A-</button>
+      <button id="acc-letra-mas" title="Letra grande">A+</button>
+      <button id="acc-oscuro" title="Modo oscuro">🌙</button>
+      <button id="acc-daltonico" title="Modo daltónico">👁️</button>
+      <button id="acc-voz" title="Leer esta página en voz alta">🔊</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="contenedor">
+      <img src="data:image/webp;base64,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" alt="EcoBot, el robot verde acompañante de EcoCiclo">
+      <h1>Recicla más fácil, con la ayuda de EcoBot</h1>
+      <p class="subtitulo">
+        EcoCiclo es una app gratuita para encontrar puntos de reciclaje reales cerca de ti,
+        saber en qué contenedor va cada cosa, y sumar a tu comunidad — sin descargar nada
+        pesado ni gastar tus datos móviles.
+      </p>
+      <div class="fila-botones-hero">
+        <a href="https://ecociclo-app.vercel.app" class="boton-primario" target="_blank" rel="noopener">Abrir EcoCiclo App</a>
+        <a href="#instalar" class="boton-secundario">Cómo instalarla ↓</a>
+      </div>
+      <p class="requisitos-hero">Funciona en Android 8 o superior, en cualquier navegador, incluso con conexión 3G</p>
+    </div>
+  </section>
+
+  <section class="fondo-suave">
+    <div class="contenedor">
+      <h2 class="titulo-seccion">¿Qué puedes hacer con EcoCiclo?</h2>
+      <p class="bajada-seccion">Todo en una sola app, pensada para que reciclar sea simple para toda la familia</p>
+
+      <div class="grilla-funciones">
+        <div class="tarjeta-funcion">
+          <div class="circulo-icono" style="background:var(--verde-pastel);">🤖</div>
+          <h3>EcoBot</h3>
+          <p>Pregúntale por chat en qué contenedor va cualquier cosa</p>
+        </div>
+        <div class="tarjeta-funcion">
+          <div class="circulo-icono" style="background:var(--azul-pastel);">📷</div>
+          <h3>Escáner con cámara</h3>
+          <p>Apunta la cámara y una IA reconoce el objeto por ti</p>
+        </div>
+        <div class="tarjeta-funcion">
+          <div class="circulo-icono" style="background:var(--rosado-pastel);">📍</div>
+          <h3>Mapa real</h3>
+          <p>Puntos limpios reales cerca de ti, en cualquier comuna de Chile</p>
+        </div>
+        <div class="tarjeta-funcion">
+          <div class="circulo-icono" style="background:var(--morado-pastel);">📋</div>
+          <h3>Denuncias</h3>
+          <p>Reporta basurales y convoca gente a ir a limpiar</p>
+        </div>
+        <div class="tarjeta-funcion">
+          <div class="circulo-icono" style="background:var(--naranja-pastel);">🎬</div>
+          <h3>Zona de Videos</h3>
+          <p>Ideas reales de YouTube para reciclar creativamente</p>
+        </div>
+        <div class="tarjeta-funcion">
+          <div class="circulo-icono" style="background:var(--verde-pastel);">💬</div>
+          <h3>Comunidad</h3>
+          <p>Comparte, comenta y ayuda a limpiar junto a otros vecinos</p>
+        </div>
+        <div class="tarjeta-funcion">
+          <div class="circulo-icono" style="background:var(--azul-pastel);">🔮</div>
+          <h3>Modo Futuro</h3>
+          <p>Datos reales: países, marcas y tiempos de degradación</p>
+        </div>
+        <div class="tarjeta-funcion">
+          <div class="circulo-icono" style="background:var(--naranja-pastel);">🛍️</div>
+          <h3>Mercado</h3>
+          <p>Vende, intercambia o regala cosas reciclables</p>
+        </div>
+        <div class="tarjeta-funcion">
+          <div class="circulo-icono" style="background:var(--amarillo-pastel);">⭐</div>
+          <h3>Puntos Eco</h3>
+          <p>Gana puntos reales por cada acción de reciclaje</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="instalar">
+    <div class="contenedor">
+      <h2 class="titulo-seccion">Cómo instalar EcoCiclo</h2>
+      <p class="bajada-seccion">
+        EcoCiclo no se descarga desde ninguna tienda de aplicaciones — se "guarda" directo desde
+        tu navegador, así que pesa casi nada y siempre tienes la última versión
+      </p>
+
+      <div class="lista-pasos">
+        <div class="paso">
+          <div class="numero-paso"></div>
+          <div class="cuerpo-paso">
+            <h3>Abre el link de EcoCiclo en Chrome</h3>
+            <p>Toca el botón "Abrir EcoCiclo App" de esta página, o escribe directamente <strong>ecociclo-app.vercel.app</strong> en tu navegador Chrome.</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="numero-paso"></div>
+          <div class="cuerpo-paso">
+            <h3>Toca el menú de 3 puntos</h3>
+            <p>Arriba a la derecha de Chrome, toca el ícono de los 3 puntos verticales (⋮).</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="numero-paso"></div>
+          <div class="cuerpo-paso">
+            <h3>Elige "Instalar app" o "Añadir a pantalla de inicio"</h3>
+            <p>Según tu versión de Android puede decir de una u otra forma — ambas hacen lo mismo: crean un ícono de EcoCiclo en tu celular, igual que cualquier otra app.</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="numero-paso"></div>
+          <div class="cuerpo-paso">
+            <h3>Confirma y listo</h3>
+            <p>Aparece un ícono verde de EcoCiclo en tu pantalla de inicio. Desde ahí la abres directo, sin pasar por el navegador cada vez.</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="numero-paso"></div>
+          <div class="cuerpo-paso">
+            <h3>Da los permisos cuando te los pida</h3>
+            <p>La primera vez que uses el mapa o la cámara, Android te va a preguntar si le das permiso de ubicación o cámara a EcoCiclo. Dile que sí — sin eso, esas 2 funciones no van a poder trabajar.</p>
+          </div>
+        </div>
+      </div>
+
+      <p class="bajada-seccion" style="margin-top:32px; margin-bottom:16px;">
+        ¿Tienes iPhone? También puedes instalarla, solo que el proceso es distinto (así lo pide Apple)
+      </p>
+
+      <div class="lista-pasos">
+        <div class="paso">
+          <div class="numero-paso"></div>
+          <div class="cuerpo-paso">
+            <h3>Abre el link en Safari (no en Chrome)</h3>
+            <p>En iPhone, solo Safari puede instalar apps a la pantalla de inicio — aunque uses Chrome normalmente, para este paso tiene que ser Safari.</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="numero-paso"></div>
+          <div class="cuerpo-paso">
+            <h3>Toca el botón "Compartir"</h3>
+            <p>Es el ícono cuadrado con una flecha hacia arriba, abajo al centro de la pantalla.</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="numero-paso"></div>
+          <div class="cuerpo-paso">
+            <h3>Elige "Añadir a pantalla de inicio"</h3>
+            <p>Puede que tengas que deslizar hacia abajo en la lista para encontrarla. Confirma con "Añadir".</p>
+          </div>
+        </div>
+      </div>
+
+      <p class="bajada-seccion" style="margin-top:32px; margin-bottom:16px;">
+        ¿Prefieres usarla desde tu computador con Windows? También se instala como programa, en menos de 10 segundos
+      </p>
+
+      <div class="lista-pasos">
+        <div class="paso">
+          <div class="numero-paso"></div>
+          <div class="cuerpo-paso">
+            <h3>Abre ecociclo-app.vercel.app en Chrome o Edge</h3>
+            <p>Cualquiera de los 2 navegadores funciona igual de bien para instalar (ambos están hechos con la misma base técnica).</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="numero-paso"></div>
+          <div class="cuerpo-paso">
+            <h3>Busca el ícono de instalar en la barra de direcciones</h3>
+            <p>Es un ícono chico (parecido a una pantalla con una flecha, o un signo "+" dentro de un círculo) al lado derecho de donde escribes la dirección web.</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="numero-paso"></div>
+          <div class="cuerpo-paso">
+            <h3>¿No ves ese ícono? Usa el menú de 3 puntos</h3>
+            <p>Arriba a la derecha (⋮) → busca "Instalar EcoCiclo App..." o "Aplicaciones" → "Instalar esta página como una aplicación".</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="numero-paso"></div>
+          <div class="cuerpo-paso">
+            <h3>Confirma con "Instalar"</h3>
+            <p>Se abre una ventanita propia (sin la barra del navegador arriba) y queda un acceso directo en tu Menú Inicio y en el escritorio, como cualquier otro programa instalado.</p>
+          </div>
+        </div>
+      </div>
+
+      <p class="bajada-seccion" style="margin-top:32px; margin-bottom:16px;">
+        ¿Tienes Mac? También se instala, con 2 caminos posibles
+      </p>
+
+      <div class="lista-pasos">
+        <div class="paso">
+          <div class="numero-paso"></div>
+          <div class="cuerpo-paso">
+            <h3>Opción 1 — Con Chrome</h3>
+            <p>Abre el link en Chrome y sigue los mismos pasos que en Windows: busca el ícono de instalar en la barra de direcciones, o el menú ⋮ → "Instalar EcoCiclo App...".</p>
+          </div>
+        </div>
+        <div class="paso">
+          <div class="numero-paso"></div>
+          <div class="cuerpo-paso">
+            <h3>Opción 2 — Con Safari (nativo de Mac)</h3>
+            <p>Abre el link en Safari → menú "Archivo" (arriba a la izquierda) → "Añadir al Dock...". Queda un ícono en tu Dock, como cualquier aplicación de Mac. Disponible en macOS Sonoma o más reciente.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="fondo-suave" id="usar">
+    <div class="contenedor">
+      <h2 class="titulo-seccion">Cómo usar las funciones principales</h2>
+      <p class="bajada-seccion">Un resumen rápido de lo más importante</p>
+
+      <div class="bloque-uso">
+        <div class="icono-uso-grande" style="background:var(--rosado-pastel);">📍</div>
+        <div>
+          <h3>1. Encuentra un punto limpio cerca de ti</h3>
+          <p>Toca "Mapa de Reciclaje" en la pantalla de inicio. Acepta el permiso de ubicación, y vas a ver tu posición junto con los puntos de reciclaje reales más cercanos, con la distancia a cada uno.</p>
+        </div>
+      </div>
+
+      <div class="bloque-uso">
+        <div class="icono-uso-grande" style="background:var(--azul-pastel);">📷</div>
+        <div>
+          <h3>2. Averigua dónde va un producto</h3>
+          <p>Toca "Escanear Producto" y apunta la cámara al objeto — EcoBot lo reconoce solo y te dice el contenedor correcto. También puedes escribírselo por chat si prefieres no usar la cámara.</p>
+        </div>
+      </div>
+
+      <div class="bloque-uso">
+        <div class="icono-uso-grande" style="background:var(--amarillo-pastel);">⭐</div>
+        <div>
+          <h3>3. Acumula tus Puntos Eco</h3>
+          <p>Cada vez que EcoBot reconoce algo (hasta 3 veces por tipo de objeto), reciclas de verdad frente a la cámara o publicas en la comunidad, tus puntos suben — los ves siempre en la pantalla de inicio.</p>
+        </div>
+      </div>
+
+      <div class="bloque-uso">
+        <div class="icono-uso-grande" style="background:var(--morado-pastel);">📋</div>
+        <div>
+          <h3>4. Reporta un basural</h3>
+          <p>En "Más opciones" → "Denuncias", cuenta qué encontraste y dónde. Si es un basural, otros usuarios pueden anotarse para ir a ayudar a limpiarlo juntos.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="preguntas">
+    <div class="contenedor">
+      <h2 class="titulo-seccion">Preguntas frecuentes y solución de errores</h2>
+      <p class="bajada-seccion">Los problemas más comunes al descargar, registrarse y usar la app</p>
+
+      <div class="lista-faq">
+        <details class="item-faq">
+          <summary>No me aparece la opción "Instalar app" en Chrome</summary>
+          <p>Asegúrate de estar usando el navegador Chrome (no otro navegador) y de tener conexión a internet en ese momento. Si sigue sin aparecer, igual puedes usar EcoCiclo normalmente abriendo el link cada vez desde Chrome — funciona exactamente igual, solo que sin ícono propio en tu pantalla.</p>
+        </details>
+        <details class="item-faq">
+          <summary>La app me pide ubicación y no sé si darle permiso</summary>
+          <p>Es seguro dárselo: EcoCiclo solo usa tu ubicación para mostrarte los puntos de reciclaje más cercanos a ti — nunca se guarda ni se comparte con nadie. Si tocaste "No permitir" por error, puedes cambiarlo en Ajustes de tu celular → Apps → Chrome (o EcoCiclo) → Permisos → Ubicación.</p>
+        </details>
+        <details class="item-faq">
+          <summary>No aparece ningún punto limpio cerca de mi ubicación</summary>
+          <p>EcoCiclo busca puntos reales en una base de datos colaborativa (OpenStreetMap). Si tu zona todavía no tiene puntos cargados ahí, la app te lo va a avisar y te va a sugerir revisar el Mapa de Reciclaje oficial del Ministerio del Medio Ambiente. Con el tiempo, más comunas van sumando sus puntos.</p>
+        </details>
+        <details class="item-faq">
+          <summary>La cámara no reconoce el objeto, o tarda mucho en cargar</summary>
+          <p>La primera vez que usas el escáner, la app descarga el "cerebro" de inteligencia artificial — puede tardar unos segundos según tu conexión. Después de eso funciona rápido. Si el objeto no se reconoce, prueba con mejor luz o pregúntale a EcoBot por chat directamente.</p>
+        </details>
+        <details class="item-faq">
+          <summary>Inicié sesión con Google pero no veo mi nombre</summary>
+          <p>Cierra la sesión desde tu perfil (ícono arriba a la derecha) y vuelve a intentarlo. Si el problema sigue, revisa que tu conexión a internet esté estable durante el inicio de sesión — la app necesita confirmar tu cuenta con Google antes de dejarte entrar.</p>
+        </details>
+        <details class="item-faq">
+          <summary>Publiqué algo en el Mercado y ahora no puedo borrarlo</summary>
+          <p>Si publicaste sin iniciar sesión con Google, solo puedes borrar esa publicación desde el mismo celular donde la creaste. Si inicias sesión con Google antes de publicar, vas a poder eliminarla después desde cualquier dispositivo.</p>
+        </details>
+        <details class="item-faq">
+          <summary>¿EcoCiclo consume muchos datos móviles?</summary>
+          <p>No — está construida para pesar poco y andar bien incluso en redes 3G. Las partes más pesadas (el mapa y el reconocimiento con cámara) solo se cargan cuando realmente las usas, no al abrir la app.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="fondo-suave" id="encargados">
+    <div class="contenedor">
+      <div class="caja-encargados">
+        <h2>🏛️ Para encargados de puntos limpios y juntas de vecinos</h2>
+        <p>
+          EcoCiclo obtiene sus puntos de reciclaje desde OpenStreetMap, una base de datos
+          colaborativa y gratuita. Si tu punto limpio, junta de vecinos o municipio todavía
+          no aparece en la app (o los datos están desactualizados), pueden agregarlo o
+          corregirlo directamente y gratis en <a href="https://www.openstreetmap.org" target="_blank" rel="noopener">openstreetmap.org</a>,
+          marcándolo con la etiqueta <strong>amenity = recycling</strong>.
+        </p>
+        <p>
+          Una vez agregado ahí, EcoCiclo lo va a mostrar automáticamente a todos los vecinos
+          que usen la app cerca de esa zona — no hace falta avisarnos ni pedir ninguna
+          aprobación aparte.
+        </p>
+        <p>
+          Para reportes de la comunidad (denuncias de basurales), pueden revisarlos dentro de
+          la misma app, en la sección "Denuncias" — ahí se ve la ubicación, descripción y
+          cuánta gente se ha anotado para ayudar a limpiar cada caso.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="contenedor" style="text-align:center; max-width:480px;">
+      <h2 class="titulo-seccion" style="font-size:20px;">¿Tienes alguna duda?</h2>
+      <p class="bajada-seccion" style="margin-bottom:16px;">
+        Escríbenos y te respondemos lo antes posible
+      </p>
+      <a href="mailto:altamiranotheare5@gmail.com" class="boton-secundario">✉️ altamiranotheare5@gmail.com</a>
+    </div>
+  </section>
+
+  <section class="cta-final">
+    <h2>¿Listo para empezar a reciclar?</h2>
+    <p>Ábrela ahora, es gratis y no necesitas crear una cuenta para usarla</p>
+    <a href="https://ecociclo-app.vercel.app" class="boton-primario" target="_blank" rel="noopener">Abrir EcoCiclo App</a>
+  </section>
+
+  <footer>
+    EcoCiclo App — Proyecto de reciclaje inteligente para la comunidad · Fase 3, Programación
+  </footer>
+
+  <script>
+    // Mismo criterio de accesibilidad que en la app, aplicado
+    // acá también, tal como se pidió
+    let tamanoActual = 1;
+
+    document.getElementById("acc-letra-mas").addEventListener("click", function () {
+      tamanoActual = Math.min(tamanoActual + 0.15, 1.45);
+      document.body.style.zoom = (tamanoActual * 100) + "%";
+    });
+    document.getElementById("acc-letra-menos").addEventListener("click", function () {
+      tamanoActual = 1;
+      document.body.style.zoom = "100%";
+    });
+
+    document.getElementById("acc-oscuro").addEventListener("click", function () {
+      document.body.classList.toggle("modo-oscuro");
+      this.classList.toggle("activo");
+    });
+
+    document.getElementById("acc-daltonico").addEventListener("click", function () {
+      document.body.classList.toggle("modo-daltonico");
+      this.classList.toggle("activo");
+    });
+
+    document.getElementById("acc-voz").addEventListener("click", function () {
+      if (speechSynthesis.speaking) {
+        speechSynthesis.cancel();
+        return;
+      }
+      if (!("speechSynthesis" in window)) {
+        alert("Tu navegador no permite la lectura por voz. Prueba con Chrome.");
+        return;
+      }
+      const mensaje = new SpeechSynthesisUtterance(document.body.innerText);
+      mensaje.lang = "es-CL";
+      mensaje.rate = 0.95;
+      speechSynthesis.speak(mensaje);
+    });
+  </script>
+</body>
+</html>
